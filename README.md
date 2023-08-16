@@ -1,12 +1,12 @@
-# Terraform AWS S3 Bucket Creation
+# Terraform AWS S3 Bucket - SNS
 
-This repository contains a simple Terraform application that demonstrates how to create an Amazon S3 bucket on AWS using Terraform. The provided Terraform configuration defines the necessary resources and settings to create an S3 bucket.
+This repository contains a simple Terraform application that demonstrates how to create an Amazon S3 bucket and an SNS topic and receive an email every time a file is uploaded on the s3 bcucket using Terraform. The provided Terraform configuration defines the necessary resources and settings.
 
 ## Prerequisites
 
 Before you begin, ensure you have the following prerequisites:
 
-- **Terraform**: Make sure you have Terraform installed on your local machine. You can download it from the official website: [Terraform Downloads](https://www.terraform.io/downloads.html).
+- **Terraform**: Make sure you have Terraform (version ~> 0.15) installed on your local machine. You can download it from the official website: [Terraform Downloads](https://www.terraform.io/downloads.html).
 
 - **AWS Account**: You'll need an active AWS account with appropriate permissions to create S3 buckets.
 
@@ -18,11 +18,11 @@ Follow these steps to set up and create an S3 bucket using Terraform:
 
    ```sh
    git clone https://github.com/DalianisG/terraformProject.git
-   cd terraform-aws-s3-bucket
+   cd terraformProject
 
    ```
 
-2. Open the main.tf file in a text editor to review and customize the configuration, such as the bucket_name, acl, and other attributes according to your preferences.
+2. Open the `variables.tf` file in a text editor to review and customize the `bucket_name` and `sns_email` according to your preferences.
 
 3. Initialize the Terraform working directory:
 
@@ -42,23 +42,31 @@ Follow these steps to set up and create an S3 bucket using Terraform:
    terraform apply
    ```
 
-6. Confirm the action by typing yes and pressing Enter.
+6. Confirm the action by typing `yes` and pressing Enter.
 
-7. Terraform will provision the S3 bucket based on the configuration you provided. Once the process is complete, you'll see output indicating the successful creation of the bucket.
+7. Terraform will provision the S3 bucket and SNS topic based on the configuration you provided. Once the process is complete, you'll see output indicating the successful creation of the bucket.
+
+8. Confirm subscription on your email.
 
 ## Clean Up
 
-If you wish to remove the resources created by Terraform, you can use the following command:
+If you wish to remove the resources created by Terraform, you have to empty the s3 bucket using the console [(AWS Empty Bucket Documentation)](https://docs.aws.amazon.com/AmazonS3/latest/userguide/empty-bucket.html) or the command:
+
+```
+aws s3 rm s3://bucket-name --recursive
+```
+
+on the CLI. Then you can use the following command to destroy the infrastructure (s3 bucket and SNS topic):
 
 ```
 terraform destroy
 ```
 
-Confirm the action by typing yes when prompted.
+Confirm the action by typing `yes` when prompted.
 
 ## Customization
 
-Feel free to customize the main.tf configuration file to match your requirements. You can adjust parameters like the bucket name, access control settings, and more.
+Feel free to customize the `main.tf` configuration file to match your requirements. You can adjust parameters like the bucket name, access control settings, and more.
 
 ## Important Note
 

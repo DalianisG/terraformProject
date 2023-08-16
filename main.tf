@@ -14,64 +14,18 @@ provider "aws" {
   region  = var.aws_region
 }
 
-###########################
-# Customer managed KMS key
-###########################
-resource "aws_kms_key" "kms_s3_key" {
-    description             = "Key to protect S3 objects"
-    key_usage               = "ENCRYPT_DECRYPT"
-    deletion_window_in_days = 7
-    is_enabled              = true
-}
-
-resource "aws_kms_alias" "kms_s3_key_alias" {
-    name          = "alias/s3-key"
-    target_key_id = aws_kms_key.kms_s3_key.key_id
-}
-
-########################
 # Bucket creation
-########################
 resource "aws_s3_bucket" "my_protected_bucket" {
   bucket = var.bucket_name
 }
 
-
-#############################
-# Enable bucket versioning
-#############################
-resource "aws_s3_bucket_versioning" "my_protected_bucket_versioning" {
-  bucket = aws_s3_bucket.my_protected_bucket.id
-  versioning_configuration {
-    status = "Enabled"
-  }
-}
-
-##########################################
-# Enable default Server Side Encryption
-##########################################
-resource "aws_s3_bucket_server_side_encryption_configuration" "my_protected_bucket_server_side_encryption" {
-  bucket = aws_s3_bucket.my_protected_bucket.bucket
-
-  rule {
-    apply_server_side_encryption_by_default {
-        kms_master_key_id = aws_kms_key.kms_s3_key.arn
-        sse_algorithm     = "aws:kms"
-    }
-  }
-}
-
-############################
 # Creating Lifecycle Rule
-############################
 resource "aws_s3_bucket_lifecycle_configuration" "my_protected_bucket_lifecycle_rule" {
   # Must have bucket versioning enabled first
-  depends_on = [aws_s3_bucket_versioning.my_protected_bucket_versioning]
-
   bucket = aws_s3_bucket.my_protected_bucket.bucket
 
   rule {
-    id = "basic_config"
+    id     = "basic_config"
     status = "Enabled"
 
     filter {
@@ -87,23 +41,65 @@ resource "aws_s3_bucket_lifecycle_configuration" "my_protected_bucket_lifecycle_
       noncurrent_days = 60
       storage_class   = "GLACIER"
     }
-    
+
     noncurrent_version_expiration {
       noncurrent_days = 90
     }
   }
 }
 
-########################
-# Disabling bucket
-# public access
-########################
+# Disabling bucket public access
 resource "aws_s3_bucket_public_access_block" "my_protected_bucket_access" {
   bucket = aws_s3_bucket.my_protected_bucket.id
 
   # Block public access
-  block_public_acls   = true
-  block_public_policy = true
-  ignore_public_acls = true
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
   restrict_public_buckets = true
+}
+
+# Create a new SNS topic
+resource "aws_sns_topic" "my_topic" {
+  name = "my-sns-topic"
+}
+
+# Grant S3 permission to publish to SNS topic
+resource "aws_sns_topic_policy" "sns_policy" {
+  arn = aws_sns_topic.my_topic.arn
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Sid       = "AllowS3Publish",
+        Effect    = "Allow",
+        Principal = "*",
+        Action    = "sns:Publish",
+        Resource  = aws_sns_topic.my_topic.arn,
+        Condition = {
+          ArnLike = {
+            "aws:SourceArn" = aws_s3_bucket.my_protected_bucket.arn
+          }
+        }
+      }
+    ]
+  })
+}
+
+# Set up S3 bucket notification to trigger SNS topic
+resource "aws_s3_bucket_notification" "bucket_notification" {
+  bucket = aws_s3_bucket.my_protected_bucket.id
+
+  topic {
+    topic_arn = aws_sns_topic.my_topic.arn
+    events    = ["s3:ObjectCreated:*"]
+  }
+}
+
+# Subscribe an email adress to the SNS topic
+resource "aws_sns_topic_subscription" "email_subscription" {
+  topic_arn = aws_sns_topic.my_topic.arn
+  protocol  = "email"
+  endpoint  = var.sns_email
 }
