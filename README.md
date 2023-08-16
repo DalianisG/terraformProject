@@ -22,7 +22,7 @@ Follow these steps to set up and create an S3 bucket using Terraform:
 
    ```
 
-2. Open the `variables.tf` file in a text editor to review and customize the `bucket_name` and `sns_email` according to your preferences.
+2. Open the `variables.tf` file in a text editor to review and customize the `bucket_name`, `sns_topic_name` and `sns_email` according to your preferences.
 
 3. Initialize the Terraform working directory:
 
@@ -66,7 +66,7 @@ Confirm the action by typing `yes` when prompted.
 
 ## Customization
 
-Feel free to customize the `main.tf` configuration file to match your requirements. You can adjust parameters like the bucket name, access control settings, and more.
+Feel free to customize the `variable.tf` file to match your requirements. You can adjust parameters like the bucket name, region, SNS topic name and email. On `main.tf` file you can make changes to ACL, enable versioning, change lifecycle policy etc.
 
 ## Important Note
 

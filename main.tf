@@ -61,7 +61,7 @@ resource "aws_s3_bucket_public_access_block" "my_protected_bucket_access" {
 
 # Create a new SNS topic
 resource "aws_sns_topic" "my_topic" {
-  name = "my-sns-topic"
+  name = var.sns_topic_name
 }
 
 # Grant S3 permission to publish to SNS topic

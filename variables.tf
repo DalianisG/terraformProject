@@ -15,6 +15,12 @@ variable "bucket_name" {
   }
 }
 
+variable "sns_topic_name" {
+  description = "The SNS topic name"
+  type        = string
+  default     = "my-sns-topic"
+}
+
 variable "sns_email" {
   description = "Them email adress to get notified from SNS"
   type        = string
