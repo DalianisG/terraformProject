@@ -38,6 +38,7 @@ Follow these steps to set up and create an S3 bucket using Terraform:
 
 5. If the plan looks good, apply the configuration to create the S3 bucket:
 
+
    ```
    terraform apply
    ```
